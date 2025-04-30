@@ -828,3 +828,5 @@
 
     checkForTargetLinks();
 })();
+
+// https://t.me/darkteam_crypto - @autoruncrypto
