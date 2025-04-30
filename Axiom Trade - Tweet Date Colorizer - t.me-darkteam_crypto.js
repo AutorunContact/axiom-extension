@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Axiom Trade - Tweet Date Colorizer - t.me/darkteam_crypto
 // @namespace    http://tampermonkey.net/
-// @version      0.1
+// @version      1.1
 // @description  Color the tweet dates based on the current time
 // @author       TG : t.me/darkteam_crypto
 // @match        https://axiom.trade/*
