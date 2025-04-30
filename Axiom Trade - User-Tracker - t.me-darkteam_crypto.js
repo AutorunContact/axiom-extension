@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Axiom Trade - User-Tracker - t.me/darkteam_crypto
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.1
 // @description  This script lets you quickly spot tokens linked to specific users, with a management UI
 // @author       TG : t.me/darkteam_crypto
 // @match        https://axiom.trade/*
@@ -25,6 +25,8 @@
     }
 
     const MARKER_ATTR = "data-plume-modified";
+    let cachedUsernames = [];
+    let debounceTimer;
 
     // Dark UI CSS
     const css = `
@@ -589,32 +591,37 @@
     };
 
     const waitForElement = () => {
-        let timeoutId;
         const targetSelector = '.flex.flex-row.gap-4.items-center';
         const buttonClass = 'dt-axiom-button';
 
-        const observer = new MutationObserver((mutations) => {
-            if (timeoutId) return;
-
-            timeoutId = setTimeout(() => {
-                const target = document.querySelector(targetSelector);
-                if (target && !target.querySelector(`.${buttonClass}`)) {
-                    const button = createAxiomButton();
-                    button && target.insertBefore(button, target.firstChild);
+        const checkAndAddButton = () => {
+            const target = document.querySelector(targetSelector);
+            if (target && !target.querySelector(`.${buttonClass}`)) {
+                const button = createAxiomButton();
+                if (button) {
+                    target.insertBefore(button, target.firstChild);
+                    console.log("✅ Bouton User-Tracker ajouté");
                 }
-                timeoutId = null;
-            }, 200);
+            }
+        };
+
+        // Vérification initiale
+        checkAndAddButton();
+
+        // Observer les changements dans le DOM
+        const observer = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                if (mutation.addedNodes.length > 0) {
+                    checkAndAddButton();
+                }
+            }
         });
 
         observer.observe(document.body, {
             childList: true,
-            subtree: true,
-            attributes: false,
-            characterData: false
+            subtree: true
         });
     };
-
-    waitForElement();
 
     // Tab switching
     tabs.addEventListener('click', (e) => {
@@ -658,10 +665,24 @@
         togglePanel(false);
     });
 
+    // Get target usernames with cache
+    function getTargetUsernames() {
+        if (cachedUsernames.length === 0) {
+            cachedUsernames = GM_getValue('targetUsernames', []);
+        }
+        return cachedUsernames;
+    }
+
+    // Update usernames and cache
+    function updateUsernames(newList) {
+        GM_setValue('targetUsernames', newList);
+        cachedUsernames = newList;
+    }
+
     // Load and display users
     function loadUsers() {
         list.innerHTML = '';
-        const users = GM_getValue('targetUsernames', []);
+        const users = getTargetUsernames();
 
         users.forEach(username => {
             const item = document.createElement('div');
@@ -676,7 +697,7 @@
 
             deleteBtn.addEventListener('click', () => {
                 const updatedUsers = users.filter(u => u !== username);
-                GM_setValue('targetUsernames', updatedUsers);
+                updateUsernames(updatedUsers);
                 loadUsers();
                 showNotification(`User "${username}" removed`, 'success');
             });
@@ -691,10 +712,10 @@
     addBtn.addEventListener('click', () => {
         const username = input.value.trim();
         if (username) {
-            const users = GM_getValue('targetUsernames', []);
+            const users = getTargetUsernames();
             if (!users.includes(username)) {
                 users.push(username);
-                GM_setValue('targetUsernames', users);
+                updateUsernames(users);
                 loadUsers();
                 input.value = '';
                 showNotification(`User "${username}" added to tracking`, 'success');
@@ -743,9 +764,9 @@
             }
 
             if (usernames.length > 0) {
-                const currentUsers = GM_getValue('targetUsernames', []);
+                const currentUsers = getTargetUsernames();
                 const newUsers = [...new Set([...currentUsers, ...usernames])]; // Remove duplicates
-                GM_setValue('targetUsernames', newUsers);
+                updateUsernames(newUsers);
                 loadUsers();
                 jsonTextarea.value = '';
 
@@ -766,7 +787,7 @@
 
     // Export users as simple list
     exportSimpleBtn.addEventListener('click', () => {
-        const users = GM_getValue('targetUsernames', []);
+        const users = getTargetUsernames();
         const quotedUsers = users.map(username => `"${username}"`);
         jsonTextarea.value = quotedUsers.join(', ');
 
@@ -782,51 +803,97 @@
     // Initial load
     loadUsers();
 
-    function highlightPlume(username, twitterLinkElement) {
-        let container = twitterLinkElement;
-        while (container && !container.querySelector('svg, i')) {
-            container = container.parentElement;
-            if (!container || container === document.body) return;
-        }
+    function highlightPlume(username, element) {
+        if (element.hasAttribute(MARKER_ATTR)) return;
 
-        if (container && !container.hasAttribute(MARKER_ATTR)) {
-            const plumeIcon = container.querySelector('svg, i');
-            if (plumeIcon) {
-                plumeIcon.style.color = "red";
-                plumeIcon.style.fill = "red";
-                plumeIcon.style.fontSize = "1.5em";
-                plumeIcon.style.width = "1.5em";
-                plumeIcon.style.height = "1.5em";
-                container.setAttribute(MARKER_ATTR, "true");
-                console.log(`Found ${username} !`);
-                //showNotification(`Found tracked user: ${username}`, 'info');
-            }
-        }
+        const plumeIcon = element.querySelector('svg, i');
+        if (!plumeIcon) return;
+
+        plumeIcon.style.cssText = `
+            color: red !important;
+            fill: red !important;
+            font-size: 1.5em !important;
+            width: 1.5em !important;
+            height: 1.5em !important;
+        `;
+        element.setAttribute(MARKER_ATTR, "true");
     }
 
-    function checkForTargetLinks() {
-        const twitterLinks = document.querySelectorAll('a[href^="https://x.com/"], a[href^="https://twitter.com/"], a[href^="https://truthsocial.com/"]');
-        const targetUsernames = GM_getValue('targetUsernames', []);
+    function checkForTargetLinks(mutationsList) {
+        const targetUsernames = getTargetUsernames();
+        if (targetUsernames.length === 0) return;
 
-        for (const link of twitterLinks) {
-            for (const username of targetUsernames) {
-                const regex = new RegExp(`/${username.replace('@', '')}/`, 'i');
-                if (regex.test(link.href)) {
-                    highlightPlume(username, link);
+        const usernamesRegex = new RegExp(targetUsernames.map(u => u.replace('@', '')).join('|'), 'i');
+
+        // If mutations are provided, only check added nodes
+        if (mutationsList) {
+            for (const mutation of mutationsList) {
+                for (const node of mutation.addedNodes) {
+                    if (node.nodeType === 1) { // Only elements
+                        const links = node.querySelectorAll ?
+                            node.querySelectorAll('a[href^="https://x.com/"], a[href^="https://twitter.com/"], a[href^="https://truthsocial.com/"]') :
+                            [];
+                        for (const link of links) {
+                            if (usernamesRegex.test(link.href)) {
+                                highlightPlume(link.href.match(usernamesRegex)[0], link);
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            // Initial scan - only check unmarked links
+            const links = document.querySelectorAll('a[href^="https://x.com/"], a[href^="https://twitter.com/"], a[href^="https://truthsocial.com/"]:not([data-plume-modified])');
+            for (const link of links) {
+                if (usernamesRegex.test(link.href)) {
+                    highlightPlume(link.href.match(usernamesRegex)[0], link);
                 }
             }
         }
     }
 
-    setInterval(checkForTargetLinks, 1000);
+    function debouncedCheck() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => checkForTargetLinks(), 300);
+    }
 
-    const observer = new MutationObserver(() => checkForTargetLinks());
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true
+    const observer = new MutationObserver((mutations) => {
+        checkForTargetLinks(mutations);
     });
 
-    checkForTargetLinks();
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: false,
+        characterData: false
+    });
+
+    // Also observe panel changes
+    const panelObserver = new MutationObserver(debouncedCheck);
+    panelObserver.observe(panel, { childList: true, subtree: true });
+
+    // Start the observers after page load
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            checkForTargetLinks();
+            waitForElement();
+        }, 1000);
+    });
+
+    // Additional check in case DOM is already loaded
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        setTimeout(() => {
+            checkForTargetLinks();
+            waitForElement();
+        }, 1000);
+    } else {
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                checkForTargetLinks();
+                waitForElement();
+            }, 1000);
+        });
+    }
 })();
 
 // https://t.me/darkteam_crypto - @autoruncrypto
