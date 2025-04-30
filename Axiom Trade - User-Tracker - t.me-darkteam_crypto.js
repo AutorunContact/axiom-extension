@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Axiom Trade - User-Tracker - t.me/darkteam_crypto
 // @namespace    http://tampermonkey.net/
-// @version      1.4
+// @version      1.0
 // @description  This script lets you quickly spot tokens linked to specific users, with a management UI
 // @author       TG : t.me/darkteam_crypto
 // @match        https://axiom.trade/*
