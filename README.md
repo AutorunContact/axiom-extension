@@ -37,7 +37,7 @@ For example, in the video, you can see that the feather appears in red because t
 
 ✅ Compatible with: Twitter (X), TruthSocial, and any other platform using usernames.
 
-[![Watch the video](https://i.imgur.com/smxdcQM.png)](https://youtu.be/AnOwz1x7yv0?si=cf-zPBeMh65_qP0S)
+[![Watch the video](https://i.imgur.com/ED1r4iv.png)](https://youtu.be/RqUOhskfUhg?si=JQKAVDfPCYe32-Uz)
 
 ## 🌈 Tweet Date Colorizer
 
