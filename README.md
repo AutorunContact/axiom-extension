@@ -37,7 +37,7 @@ For example, in the video, you can see that the feather appears in red because t
 
 ✅ Compatible with: Twitter (X), TruthSocial, and any other platform using usernames.
 
-[![Watch the video](https://prnt.sc/n7x6i9cu8GWc)](https://youtu.be/AnOwz1x7yv0?si=cf-zPBeMh65_qP0S)
+[![Watch the video](https://i.imgur.com/smxdcQM.png)](https://youtu.be/AnOwz1x7yv0?si=cf-zPBeMh65_qP0S)
 
 ## 🌈 Tweet Date Colorizer
 
@@ -48,8 +48,8 @@ This script automatically colorizes tweet dates on Axiom Trade for easy spotting
 
 For example, in the images, you can see that in the first image, the date is in green because the tweet is less than an hour old. In the second image, the date is in red because the tweet is more than an hour old, which often indicates that the hype has already passed.
 
-![Green](https://prnt.sc/d16vLxtgCsJD)
-![Red](https://prnt.sc/9Y-fqZ9qt4JE)
+![Green](https://i.imgur.com/252vN6i.jpg)  
+![Red](https://i.imgur.com/awatPpQ.jpg)
 
 ## 🌐 Auto Translator - Tweet
 
@@ -57,11 +57,11 @@ This script allows you to automatically translate Tweets (X posts) on Axiom Trad
 
 Translations are fast, reliable, and cached for better performance. ⚡️
 
-![Translate](https://prnt.sc/jrP6_7tIOPPK)
+![Translate](https://i.imgur.com/DZxKBUL.jpg)  
+![Translate](https://i.imgur.com/XMeTggd.jpg)
 
 
 
 ## Authors
 
 - [@AutorunContact](https://github.com/AutorunContact)
-
