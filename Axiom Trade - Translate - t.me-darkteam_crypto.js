@@ -19,7 +19,7 @@
     // config
     const CONFIG = {
         TRANSLATE_TO: 'fr', // Select language: Default - FR (French)
-        CHECK_INTERVAL: 1000,
+        CHECK_INTERVAL: 500,
         MAX_RETRIES: 3,
         FREEZE_CONTENT: true
     };
