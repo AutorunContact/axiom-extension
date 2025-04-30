@@ -47,3 +47,5 @@
 
     setInterval(colorizeTweetDates, 1000);
 })();
+
+// https://t.me/darkteam_crypto - @autoruncrypto
