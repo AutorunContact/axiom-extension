@@ -45,7 +45,7 @@
     const observer = new MutationObserver(handleChanges);
     observer.observe(tweetContainer, { childList: true, subtree: true });
 
-    setInterval(colorizeTweetDates, 1000);
+    setInterval(colorizeTweetDates, 500);
 })();
 
 // https://t.me/darkteam_crypto - @autoruncrypto
