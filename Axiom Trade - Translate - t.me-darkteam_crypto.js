@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Axiom Trade - Translate - t.me/darkteam_crypto
 // @namespace    http://tampermonkey.net/
-// @version      1.2
+// @version      1.0
 // @description  Automatically translate Tweets (X posts) on Axiom Trade into your preferred language.
 // @author       TG : @autoruncrypto
 // @match        https://axiom.trade/*
