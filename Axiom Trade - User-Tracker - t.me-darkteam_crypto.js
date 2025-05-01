@@ -823,7 +823,7 @@
         const targetUsernames = getTargetUsernames();
         if (targetUsernames.length === 0) return;
 
-        const usernamesRegex = new RegExp(targetUsernames.map(u => u.replace('@', '')).join('|'), 'i');
+        const usernamesRegex = new RegExp(`(^|\\/)(${targetUsernames.map(u => u.replace('@', '')).join('|')})(?=[\\/?]|$)`, 'i');
 
         // If mutations are provided, only check added nodes
         if (mutationsList) {
