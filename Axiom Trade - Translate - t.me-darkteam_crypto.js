@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Axiom Trade - Translate - t.me/darkteam_crypto
 // @namespace    http://tampermonkey.net/
-// @version      1.0
-// @description  Automatically translate Tweets (X posts) on Axiom Trade into your preferred language.
+// @version      1.1
+// @description  Axiom Trade - Translate Tweet (X)
 // @author       TG : @autoruncrypto
 // @match        https://axiom.trade/*
 // @grant        GM_xmlhttpRequest
@@ -31,19 +31,36 @@
             padding-left: 8px;
             background-color: rgba(76, 175, 80, 0.05);
         }
-        .frozen-translation::before {
-            content: "Traduit";
-            position: absolute;
-            top: -10px;
-            right: 5px;
-            font-size: 0.7em;
-            color: #4CAF50;
-            background: white;
+        .translate-link {
+            display: inline-block;
+            margin-left: 10px;
+            font-size: 0.8em;
+            color: #1da1f2;
+            cursor: pointer;
+            background-color: rgba(29, 161, 242, 0.1);
             padding: 0 5px;
+            border-radius: 3px;
+            text-decoration: none;
+        }
+        .translate-link:hover {
+            text-decoration: underline;
+            background-color: rgba(29, 161, 242, 0.2);
+        }
+        .translation-original {
+            border-left-color: #FF9800;
+            background-color: rgba(255, 152, 0, 0.05);
         }
     `);
 
     const translationCache = {};
+    const originalTextStore = new WeakMap();
+
+    function createTranslateLink() {
+        const link = document.createElement('span');
+        link.className = 'translate-link';
+        link.textContent = 'Translate';
+        return link;
+    }
 
     function freezeElement(element) {
         if (element.dataset.frozen === 'true') return element;
@@ -52,24 +69,51 @@
         clone.dataset.frozen = 'true';
         clone.classList.add('frozen-translation');
 
-        element.parentNode.replaceChild(clone, element);
+        const timeElement = clone.querySelector('time');
+        if (timeElement) {
+            const translateLink = createTranslateLink();
+            timeElement.parentNode.insertBefore(translateLink, timeElement.nextSibling);
 
+            translateLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                toggleTranslation(clone);
+            });
+        }
+
+        element.parentNode.replaceChild(clone, element);
         return clone;
+    }
+
+    function toggleTranslation(element) {
+        const isShowingOriginal = element.classList.contains('translation-original');
+
+        const textNodes = collectTextNodes(element);
+        textNodes.forEach(node => {
+            const originalText = originalTextStore.get(node);
+            if (originalText) {
+                const currentText = node.textContent;
+                node.textContent = originalText;
+                originalTextStore.set(node, currentText);
+            }
+        });
+
+        element.classList.toggle('translation-original');
     }
 
     async function deepTranslateAndFreeze(element) {
         if (element.dataset.translated === 'true') return;
 
         element.dataset.translating = 'true';
-
         const frozenContainer = freezeElement(element);
-
         const textNodes = collectTextNodes(frozenContainer);
 
         for (const node of textNodes) {
             const originalText = node.textContent.trim();
             if (!originalText) continue;
 
+            originalTextStore.set(node, originalText);
             let translatedText = await translateWithRetry(originalText);
             node.textContent = node.textContent.replace(originalText, translatedText);
         }
@@ -85,7 +129,7 @@
             {
                 acceptNode: node => {
                     if (!node.textContent.trim()) return NodeFilter.FILTER_REJECT;
-                    if (node.parentNode.closest('a, time, .tweet-actions_likeCount__MyxBd')) {
+                    if (node.parentNode.closest('a, .tweet-actions_likeCount__MyxBd, .translate-link')) {
                         return NodeFilter.FILTER_REJECT;
                     }
                     return NodeFilter.FILTER_ACCEPT;
@@ -98,7 +142,6 @@
         while (currentNode = walker.nextNode()) {
             nodes.push(currentNode);
         }
-
         return nodes;
     }
 
@@ -177,7 +220,6 @@
         checkForNewTweets();
         setInterval(checkForNewTweets, CONFIG.CHECK_INTERVAL);
     });
-
 })();
 
 // https://t.me/darkteam_crypto - @autoruncrypto
