@@ -44,7 +44,6 @@ For example, in the video, you can see that the feather appears in red because t
 This script automatically reformats tweet dates on Axiom Trade for clearer and more intuitive reading! 🔍
 
 ➡️ Displays the tweet date in a full format: 12 June 2025 - 3:15 PM.
-
 ➡️ Adds the time elapsed since publication in parentheses: (2 hours), (5 minutes), etc.
 
 ![Example](https://i.imgur.com/OzdfsYj.png)
