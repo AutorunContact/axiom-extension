@@ -1,24 +1,21 @@
 // ==UserScript==
-// @name         Axiom Trade - Translate - t.me/darkteam_crypto
+// @name         Axiom Trade - Translate - Discord: autorun__
 // @namespace    http://tampermonkey.net/
-// @version      1.1
-// @description  Axiom Trade - Translate Tweet (X)
-// @author       TG : @autoruncrypto
+// @version      1.0
+// @description  Axiom Trade - Translate - Discord: autorun__
+// @author       Discord: autorun__
 // @match        https://axiom.trade/*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_addStyle
-// @grant        GM_setValue
-// @grant        GM_getValue
 // @connect      translate.googleapis.com
 // @require      https://gist.githubusercontent.com/arantius/3123124/raw/grant-none-shim.js
 // ==/UserScript==
 
-(function() {
+(function () {
     'use strict';
 
-    // config
     const CONFIG = {
-        TRANSLATE_TO: 'fr', // Select language: Default - FR (French)
+        TRANSLATE_TO: 'fr', // Select language
         CHECK_INTERVAL: 500,
         MAX_RETRIES: 3,
         FREEZE_CONTENT: true
@@ -54,6 +51,7 @@
 
     const translationCache = {};
     const originalTextStore = new WeakMap();
+    const activeTweets = new WeakSet();
 
     function createTranslateLink() {
         const link = document.createElement('span');
@@ -74,7 +72,7 @@
             const translateLink = createTranslateLink();
             timeElement.parentNode.insertBefore(translateLink, timeElement.nextSibling);
 
-            translateLink.addEventListener('click', function(e) {
+            translateLink.addEventListener('click', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
                 e.stopImmediatePropagation();
@@ -105,6 +103,11 @@
     async function deepTranslateAndFreeze(element) {
         if (element.dataset.translated === 'true') return;
 
+        if (element.dataset.translating === 'true') {
+            setTimeout(() => deepTranslateAndFreeze(element), 500);
+            return;
+        }
+
         element.dataset.translating = 'true';
         const frozenContainer = freezeElement(element);
         const textNodes = collectTextNodes(frozenContainer);
@@ -119,6 +122,7 @@
         }
 
         frozenContainer.dataset.translated = 'true';
+        activeTweets.add(frozenContainer);
         delete frozenContainer.dataset.translating;
     }
 
@@ -157,7 +161,7 @@
             GM_xmlhttpRequest({
                 method: "GET",
                 url: apiUrl,
-                onload: function(response) {
+                onload: function (response) {
                     try {
                         const data = JSON.parse(response.responseText);
                         const translatedText = data[0].map(item => item[0]).join('');
@@ -174,7 +178,7 @@
                         }
                     }
                 },
-                onerror: function(error) {
+                onerror: function (error) {
                     console.error('API error:', error);
                     if (retry < CONFIG.MAX_RETRIES) {
                         setTimeout(() => {
@@ -188,15 +192,30 @@
         });
     }
 
-    function checkForNewTweets() {
-        document.querySelectorAll('.tweet-container_article__0ERPK:not([data-translated]):not([data-translating])').forEach(tweet => {
-            deepTranslateAndFreeze(tweet);
+    function cleanUpRemovedTweets() {
+        Object.keys(translationCache).forEach(text => {
+            let isTextInUse = false;
+            document.querySelectorAll('.tweet-container_article__0ERPK').forEach(tweet => {
+                if (tweet.textContent.includes(text)) {
+                    isTextInUse = true;
+                }
+            });
+            if (!isTextInUse) {
+                delete translationCache[text];
+            }
         });
     }
 
-    const observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            mutation.addedNodes.forEach(function(node) {
+    function checkForNewTweets() {
+        document.querySelectorAll('.tweet-container_article__0ERPK:not([data-translated])').forEach(tweet => {
+            deepTranslateAndFreeze(tweet);
+        });
+        cleanUpRemovedTweets();
+    }
+
+    const observer = new MutationObserver(function (mutations) {
+        mutations.forEach(function (mutation) {
+            mutation.addedNodes.forEach(function (node) {
                 if (node.nodeType === Node.ELEMENT_NODE) {
                     if (node.matches('.tweet-container_article__0ERPK')) {
                         deepTranslateAndFreeze(node);
@@ -208,6 +227,11 @@
                     }
                 }
             });
+            mutation.removedNodes.forEach(function (node) {
+                if (node.nodeType === Node.ELEMENT_NODE && node.matches('.tweet-container_article__0ERPK')) {
+                    cleanUpRemovedTweets();
+                }
+            });
         });
     });
 
@@ -216,10 +240,10 @@
         subtree: true
     });
 
-    window.addEventListener('load', function() {
+    window.addEventListener('load', function () {
         checkForNewTweets();
         setInterval(checkForNewTweets, CONFIG.CHECK_INTERVAL);
     });
 })();
 
-// https://t.me/darkteam_crypto - @autoruncrypto
+// Discord: autorun__
