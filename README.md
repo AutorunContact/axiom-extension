@@ -39,17 +39,14 @@ For example, in the video, you can see that the feather appears in red because t
 
 [![Watch the video](https://i.imgur.com/ED1r4iv.png)](https://youtu.be/RqUOhskfUhg?si=JQKAVDfPCYe32-Uz)
 
-## 🌈 Tweet Date Colorizer
+## 🕒 Tweet Date Formatter
 
-This script automatically colorizes tweet dates on Axiom Trade for easy spotting! 🎯
+This script automatically reformats tweet dates on Axiom Trade for clearer and more intuitive reading! 🔍
 
-🟢 If the tweet is less than an hour old, it appears in green (editable).  
-🔴 If the tweet is more than an hour old, it appears in red.
+➡️ Displays the tweet date in a full format: 12 June 2025 - 3:15 PM.
+➡️ Adds the time elapsed since publication in parentheses: (2 hours), (5 minutes), etc.
 
-For example, in the images, you can see that in the first image, the date is in green because the tweet is less than an hour old. In the second image, the date is in red because the tweet is more than an hour old, which often indicates that the hype has already passed.
-
-![Green](https://i.imgur.com/252vN6i.jpg)  
-![Red](https://i.imgur.com/awatPpQ.jpg)
+![Example]([https://i.imgur.com/awatPpQ.jpg](https://i.imgur.com/OzdfsYj.png))
 
 ## 🌐 Auto Translator - Tweet
 
