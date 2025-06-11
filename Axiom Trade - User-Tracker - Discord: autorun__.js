@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name         Axiom Trade - User-Tracker - t.me/darkteam_crypto
+// @name         Axiom Trade - User-Tracker - Discord: autorun__
 // @namespace    http://tampermonkey.net/
-// @version      1.1
-// @description  This script lets you quickly spot tokens linked to specific users, with a management UI
-// @author       TG : t.me/darkteam_crypto
+// @version      1.0
+// @description  Axiom Trade - User-Tracker - Discord: autorun__
+// @author       Discord: autorun__
 // @match        https://axiom.trade/*
 // @grant        GM_getValue
 // @grant        GM_setValue
@@ -14,13 +14,12 @@
 
 (function() {
     'use strict';
-    console.log("✅ Script OK!");
+    console.log("✅ User-Tracker OK!");
 
-    // Initialize storage if empty
     if (!GM_getValue('targetUsernames')) {
         GM_setValue('targetUsernames', [
             "elonmusk",
-            "@realDonaldTrump"
+            "realDonaldTrump"
         ]);
     }
 
@@ -28,7 +27,6 @@
     let cachedUsernames = [];
     let debounceTimer;
 
-    // Dark UI CSS
     const css = `
         .dt-user-manager {
             position: fixed;
@@ -372,22 +370,18 @@
         }
     `;
 
-    // Add CSS to the page
     const style = document.createElement('style');
     style.textContent = css;
     document.head.appendChild(style);
 
-    // Create notification container
     const notificationContainer = document.createElement('div');
     notificationContainer.className = 'dt-notification-container';
     document.body.appendChild(notificationContainer);
 
-    // Notification function
     function showNotification(message, type = 'info', duration = 5000) {
         const notification = document.createElement('div');
         notification.className = `dt-notification animate-enter bg-backgroundTertiary border border-secondaryStroke shadow-lg rounded-[8px] sm:rounded-[4px] pointer-events-auto flex items-center p-[16px] h-[52px] gap-[16px]`;
 
-        // Set icon based on type
         let iconClass, iconColor;
         switch(type) {
             case 'success':
@@ -431,12 +425,10 @@
 
         notificationContainer.appendChild(notification);
 
-        // Trigger animation
         setTimeout(() => {
             notification.classList.add('show');
         }, 10);
 
-        // Auto-remove if duration is set
         if (duration > 0) {
             setTimeout(() => {
                 notification.classList.remove('show');
@@ -447,7 +439,6 @@
         return notification;
     }
 
-    // Create UI elements
     const overlay = document.createElement('div');
     overlay.className = 'dt-overlay';
 
@@ -463,7 +454,6 @@
     title.className = 'dt-title';
     title.textContent = 'Tracked Users Management';
 
-    // Create tabs
     const tabs = document.createElement('div');
     tabs.className = 'dt-tabs';
 
@@ -480,11 +470,9 @@
     tabs.appendChild(manageTab);
     tabs.appendChild(importExportTab);
 
-    // Create tab contents
     const tabContents = document.createElement('div');
     tabContents.className = 'dt-tab-contents';
 
-    // Manage tab content
     const manageContent = document.createElement('div');
     manageContent.className = 'dt-tab-content active';
     manageContent.id = 'manage-tab';
@@ -510,7 +498,6 @@
     manageContent.appendChild(inputGroup);
     manageContent.appendChild(list);
 
-    // Import/Export tab content
     const importExportContent = document.createElement('div');
     importExportContent.className = 'dt-tab-content';
     importExportContent.id = 'import-export-tab';
@@ -551,9 +538,8 @@
 
     const footer = document.createElement('div');
     footer.className = 'dt-footer';
-    footer.textContent = 'DarkTeam - t.me/darkteam_crypto';
+    footer.textContent = 'Discord - autorun__';
 
-    // Assemble UI
     panel.appendChild(closeBtn);
     panel.appendChild(title);
     panel.appendChild(tabs);
@@ -563,7 +549,6 @@
     document.body.appendChild(overlay);
     document.body.appendChild(panel);
 
-    // Create the button for Axiom UI
     const createAxiomButton = () => {
         if (document.querySelector('.dt-axiom-button')) {
             return null;
@@ -605,10 +590,8 @@
             }
         };
 
-        // Vérification initiale
         checkAndAddButton();
 
-        // Observer les changements dans le DOM
         const observer = new MutationObserver((mutations) => {
             for (const mutation of mutations) {
                 if (mutation.addedNodes.length > 0) {
@@ -623,22 +606,18 @@
         });
     };
 
-    // Tab switching
     tabs.addEventListener('click', (e) => {
         const tab = e.target.closest('.dt-tab');
         if (!tab) return;
 
-        // Update active tab
         document.querySelectorAll('.dt-tab').forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
 
-        // Show corresponding content
         const tabId = `${tab.dataset.tab}-tab`;
         document.querySelectorAll('.dt-tab-content').forEach(c => c.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
     });
 
-    // Toggle panel visibility
     function togglePanel(show) {
         if (show) {
             panel.classList.add('visible');
@@ -652,20 +631,17 @@
         }
     }
 
-    // Close panel when clicking outside
     overlay.addEventListener('click', (e) => {
         if (e.target === overlay) {
             togglePanel(false);
         }
     });
 
-    // Fix close button
     closeBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         togglePanel(false);
     });
 
-    // Get target usernames with cache
     function getTargetUsernames() {
         if (cachedUsernames.length === 0) {
             cachedUsernames = GM_getValue('targetUsernames', []);
@@ -673,13 +649,11 @@
         return cachedUsernames;
     }
 
-    // Update usernames and cache
     function updateUsernames(newList) {
         GM_setValue('targetUsernames', newList);
         cachedUsernames = newList;
     }
 
-    // Load and display users
     function loadUsers() {
         list.innerHTML = '';
         const users = getTargetUsernames();
@@ -708,7 +682,6 @@
         });
     }
 
-    // Add new user
     addBtn.addEventListener('click', () => {
         const username = input.value.trim();
         if (username) {
@@ -725,14 +698,12 @@
         }
     });
 
-    // Also allow adding with Enter key
     input.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             addBtn.click();
         }
     });
 
-    // Import users from JSON or comma-separated list
     importBtn.addEventListener('click', () => {
         const inputText = jsonTextarea.value.trim();
         if (!inputText) return;
@@ -740,7 +711,6 @@
         let usernames = [];
 
         try {
-            // Try to parse as JSON array
             if (inputText.startsWith('[')) {
                 const jsonData = JSON.parse(inputText);
                 usernames = jsonData.map(item => {
@@ -749,14 +719,11 @@
                     return null;
                 }).filter(Boolean);
             }
-            // Try to parse as comma-separated list
             else if (inputText.includes('"') || inputText.includes(',')) {
-                // Clean and split the input
                 usernames = inputText.split(',')
                     .map(name => name.trim().replace(/^["']|["']$/g, ''))
                     .filter(name => name.length > 0);
             }
-            // Fallback to line-separated list
             else {
                 usernames = inputText.split('\n')
                     .map(name => name.trim())
@@ -765,14 +732,13 @@
 
             if (usernames.length > 0) {
                 const currentUsers = getTargetUsernames();
-                const newUsers = [...new Set([...currentUsers, ...usernames])]; // Remove duplicates
+                const newUsers = [...new Set([...currentUsers, ...usernames])];
                 updateUsernames(newUsers);
                 loadUsers();
                 jsonTextarea.value = '';
 
                 showNotification(`Imported ${usernames.length} users successfully`, 'success');
 
-                // Switch back to manage tab
                 document.querySelectorAll('.dt-tab').forEach(t => t.classList.remove('active'));
                 manageTab.classList.add('active');
                 document.querySelectorAll('.dt-tab-content').forEach(c => c.classList.remove('active'));
@@ -785,13 +751,11 @@
         }
     });
 
-    // Export users as simple list
     exportSimpleBtn.addEventListener('click', () => {
         const users = getTargetUsernames();
         const quotedUsers = users.map(username => `"${username}"`);
         jsonTextarea.value = quotedUsers.join(', ');
 
-        // Copy to clipboard
         GM_setClipboard(quotedUsers.join(', '));
         showNotification('User list copied to clipboard', 'success');
         exportSimpleBtn.textContent = 'Copied!';
@@ -800,7 +764,6 @@
         }, 2000);
     });
 
-    // Initial load
     loadUsers();
 
     function highlightPlume(username, element) {
@@ -825,13 +788,12 @@
 
         const usernamesRegex = new RegExp(`(^|\\/)(${targetUsernames.map(u => u.replace('@', '')).join('|')})(?=[\\/?]|$)`, 'i');
 
-        // If mutations are provided, only check added nodes
         if (mutationsList) {
             for (const mutation of mutationsList) {
                 for (const node of mutation.addedNodes) {
-                    if (node.nodeType === 1) { // Only elements
+                    if (node.nodeType === 1) {
                         const links = node.querySelectorAll ?
-                            node.querySelectorAll('a[href^="https://x.com/"], a[href^="https://twitter.com/"], a[href^="https://truthsocial.com/"]') :
+                            node.querySelectorAll('a[href^="https://x.com/"], a[href^="https://twitter.com/"]') :
                             [];
                         for (const link of links) {
                             if (usernamesRegex.test(link.href)) {
@@ -842,8 +804,7 @@
                 }
             }
         } else {
-            // Initial scan - only check unmarked links
-            const links = document.querySelectorAll('a[href^="https://x.com/"], a[href^="https://twitter.com/"], a[href^="https://truthsocial.com/"]:not([data-plume-modified])');
+            const links = document.querySelectorAll('a[href^="https://x.com/"], a[href^="https://twitter.com/"]:not([data-plume-modified])');
             for (const link of links) {
                 if (usernamesRegex.test(link.href)) {
                     highlightPlume(link.href.match(usernamesRegex)[0], link);
@@ -868,11 +829,9 @@
         characterData: false
     });
 
-    // Also observe panel changes
     const panelObserver = new MutationObserver(debouncedCheck);
     panelObserver.observe(panel, { childList: true, subtree: true });
 
-    // Start the observers after page load
     document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             checkForTargetLinks();
@@ -880,7 +839,6 @@
         }, 1000);
     });
 
-    // Additional check in case DOM is already loaded
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
         setTimeout(() => {
             checkForTargetLinks();
@@ -896,4 +854,4 @@
     }
 })();
 
-// https://t.me/darkteam_crypto - @autoruncrypto
+// Discord: autorun__
