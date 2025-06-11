@@ -43,10 +43,6 @@ For example, in the video, you can see that the feather appears in red because t
 
 This script automatically reformats tweet dates on Axiom Trade for clearer and more intuitive reading! 🔍
 
-➡️ No user limit — follow as many users as you want.  
-➡️ Import the Twitter accounts you follow into Twitter Tracker on User Tracker.  
-➡️ Export the accounts you follow on User Tracker to share them with your friends.
-
 ➡️ Displays the tweet date in a full format: 12 June 2025 - 3:15 PM.  
 ➡️ Adds the time elapsed since publication in parentheses: (2 hours), (5 minutes), etc.  
 
