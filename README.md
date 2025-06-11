@@ -46,7 +46,7 @@ This script automatically reformats tweet dates on Axiom Trade for clearer and m
 ➡️ Displays the tweet date in a full format: 12 June 2025 - 3:15 PM.
 ➡️ Adds the time elapsed since publication in parentheses: (2 hours), (5 minutes), etc.
 
-![Example]([https://i.imgur.com/awatPpQ.jpg](https://i.imgur.com/OzdfsYj.png))
+![Example](https://i.imgur.com/OzdfsYj.png)
 
 ## 🌐 Auto Translator - Tweet
 
