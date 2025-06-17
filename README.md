@@ -1,5 +1,5 @@
 
-# Axiom Extension - By Dark-Team
+# Axiom Extension - By Autorun__
 
 Our scripts enhance your experience on Axiom Trade by automating certain tasks and making analysis more intuitive.
 
