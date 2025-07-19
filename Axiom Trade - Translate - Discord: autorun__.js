@@ -15,7 +15,7 @@
     'use strict';
 
     const CONFIG = {
-        TRANSLATE_TO: 'fr', // Select language
+        TRANSLATE_TO: 'fr',
         CHECK_INTERVAL: 500,
         MAX_RETRIES: 3,
         FREEZE_CONTENT: true
@@ -56,7 +56,7 @@
     function createTranslateLink() {
         const link = document.createElement('span');
         link.className = 'translate-link';
-        link.textContent = 'Translate';
+        link.textContent = 'Traduire';
         return link;
     }
 
@@ -86,7 +86,6 @@
 
     function toggleTranslation(element) {
         const isShowingOriginal = element.classList.contains('translation-original');
-
         const textNodes = collectTextNodes(element);
         textNodes.forEach(node => {
             const originalText = originalTextStore.get(node);
@@ -96,13 +95,11 @@
                 originalTextStore.set(node, currentText);
             }
         });
-
         element.classList.toggle('translation-original');
     }
 
     async function deepTranslateAndFreeze(element) {
         if (element.dataset.translated === 'true') return;
-
         if (element.dataset.translating === 'true') {
             setTimeout(() => deepTranslateAndFreeze(element), 500);
             return;
@@ -195,7 +192,7 @@
     function cleanUpRemovedTweets() {
         Object.keys(translationCache).forEach(text => {
             let isTextInUse = false;
-            document.querySelectorAll('.tweet-container_article__0ERPK').forEach(tweet => {
+            document.querySelectorAll('.group.text-white.bg-\\[\\#15202B\\]').forEach(tweet => {
                 if (tweet.textContent.includes(text)) {
                     isTextInUse = true;
                 }
@@ -207,7 +204,7 @@
     }
 
     function checkForNewTweets() {
-        document.querySelectorAll('.tweet-container_article__0ERPK:not([data-translated])').forEach(tweet => {
+        document.querySelectorAll('.group.text-white.bg-\\[\\#15202B\\]:not([data-translated])').forEach(tweet => {
             deepTranslateAndFreeze(tweet);
         });
         cleanUpRemovedTweets();
@@ -217,18 +214,18 @@
         mutations.forEach(function (mutation) {
             mutation.addedNodes.forEach(function (node) {
                 if (node.nodeType === Node.ELEMENT_NODE) {
-                    if (node.matches('.tweet-container_article__0ERPK')) {
+                    if (node.matches('.group.text-white.bg-\\[\\#15202B\\]')) {
                         deepTranslateAndFreeze(node);
                     }
                     if (node.querySelectorAll) {
-                        node.querySelectorAll('.tweet-container_article__0ERPK').forEach(tweet => {
+                        node.querySelectorAll('.group.text-white.bg-\\[\\#15202B\\]').forEach(tweet => {
                             deepTranslateAndFreeze(tweet);
                         });
                     }
                 }
             });
             mutation.removedNodes.forEach(function (node) {
-                if (node.nodeType === Node.ELEMENT_NODE && node.matches('.tweet-container_article__0ERPK')) {
+                if (node.nodeType === Node.ELEMENT_NODE && node.matches('.group.text-white.bg-\\[\\#15202B\\]')) {
                     cleanUpRemovedTweets();
                 }
             });
