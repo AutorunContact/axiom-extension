@@ -26,6 +26,7 @@
     const MARKER_ATTR = "data-plume-modified";
     let cachedUsernames = [];
     let debounceTimer;
+    let panel, overlay;
 
     const css = `
         .dt-user-manager {
@@ -53,13 +54,13 @@
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-            display: none;
+            display: none !important;
             z-index: 10000;
             flex-direction: column;
         }
 
         .dt-panel.visible {
-            display: flex;
+            display: flex !important;
         }
 
         .dt-title {
@@ -214,11 +215,11 @@
             bottom: 0;
             background: rgba(0, 0, 0, 0.7);
             z-index: 9999;
-            display: none;
+            display: none !important;
         }
 
         .dt-overlay.visible {
-            display: block;
+            display: block !important;
         }
 
         .dt-close-btn {
@@ -273,7 +274,6 @@
             margin-bottom: 10px;
         }
 
-        /* Style for the new button */
         .dt-axiom-button {
             background: var(--primaryStroke);
             display: flex;
@@ -309,7 +309,6 @@
             font-size: 18px;
         }
 
-        /* Notification styles */
         .dt-notification-container {
             position: fixed;
             top: 0;
@@ -370,15 +369,323 @@
         }
     `;
 
-    const style = document.createElement('style');
-    style.textContent = css;
-    document.head.appendChild(style);
+    function injectStyles() {
+        if (document.getElementById('dt-user-tracker-styles')) return;
 
-    const notificationContainer = document.createElement('div');
-    notificationContainer.className = 'dt-notification-container';
-    document.body.appendChild(notificationContainer);
+        const style = document.createElement('style');
+        style.id = 'dt-user-tracker-styles';
+        style.textContent = css;
+        document.head.appendChild(style);
+    }
+
+    function createPanel() {
+        if (document.getElementById('dt-user-tracker-panel')) return;
+
+        injectStyles();
+
+        overlay = document.createElement('div');
+        overlay.className = 'dt-overlay';
+        overlay.id = 'dt-user-tracker-overlay';
+
+        panel = document.createElement('div');
+        panel.className = 'dt-panel';
+        panel.id = 'dt-user-tracker-panel';
+
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'dt-close-btn';
+        closeBtn.innerHTML = '&times;';
+        closeBtn.title = 'Close';
+
+        const title = document.createElement('h3');
+        title.className = 'dt-title';
+        title.textContent = 'Tracked Users Management';
+
+        const tabs = document.createElement('div');
+        tabs.className = 'dt-tabs';
+
+        const manageTab = document.createElement('div');
+        manageTab.className = 'dt-tab active';
+        manageTab.textContent = 'Manage';
+        manageTab.dataset.tab = 'manage';
+
+        const importExportTab = document.createElement('div');
+        importExportTab.className = 'dt-tab';
+        importExportTab.textContent = 'Import/Export';
+        importExportTab.dataset.tab = 'import-export';
+
+        tabs.appendChild(manageTab);
+        tabs.appendChild(importExportTab);
+
+        const tabContents = document.createElement('div');
+        tabContents.className = 'dt-tab-contents';
+
+        const manageContent = document.createElement('div');
+        manageContent.className = 'dt-tab-content active';
+        manageContent.id = 'manage-tab';
+
+        const inputGroup = document.createElement('div');
+        inputGroup.className = 'dt-input-group';
+
+        const input = document.createElement('input');
+        input.className = 'dt-input';
+        input.type = 'text';
+        input.placeholder = 'Enter username (e.g., elonmusk)';
+
+        const addBtn = document.createElement('button');
+        addBtn.className = 'dt-btn dt-btn-primary';
+        addBtn.textContent = 'Add';
+
+        const list = document.createElement('div');
+        list.className = 'dt-list';
+
+        inputGroup.appendChild(input);
+        inputGroup.appendChild(addBtn);
+
+        manageContent.appendChild(inputGroup);
+        manageContent.appendChild(list);
+
+        const importExportContent = document.createElement('div');
+        importExportContent.className = 'dt-tab-content';
+        importExportContent.id = 'import-export-tab';
+
+        const importExportContainer = document.createElement('div');
+        importExportContainer.className = 'dt-import-export';
+
+        const jsonTextarea = document.createElement('textarea');
+        jsonTextarea.className = 'dt-textarea';
+        jsonTextarea.placeholder = 'Paste JSON array or comma-separated usernames here...';
+
+        const formatHint = document.createElement('div');
+        formatHint.className = 'dt-format-hint';
+        formatHint.textContent = 'Formats accepted: [{"h":"username"},...] or "user1", "user2"';
+
+        const importBtn = document.createElement('button');
+        importBtn.className = 'dt-btn dt-btn-success';
+        importBtn.textContent = 'Import';
+
+        const exportSimpleBtn = document.createElement('button');
+        exportSimpleBtn.className = 'dt-btn';
+        exportSimpleBtn.textContent = 'Export as List';
+
+        const buttonGroup = document.createElement('div');
+        buttonGroup.className = 'dt-input-group';
+        buttonGroup.style.marginTop = '10px';
+
+        buttonGroup.appendChild(importBtn);
+        buttonGroup.appendChild(exportSimpleBtn);
+
+        importExportContainer.appendChild(formatHint);
+        importExportContainer.appendChild(jsonTextarea);
+        importExportContainer.appendChild(buttonGroup);
+        importExportContent.appendChild(importExportContainer);
+
+        tabContents.appendChild(manageContent);
+        tabContents.appendChild(importExportContent);
+
+        const footer = document.createElement('div');
+        footer.className = 'dt-footer';
+        footer.textContent = 'Discord - autorun__';
+
+        panel.appendChild(closeBtn);
+        panel.appendChild(title);
+        panel.appendChild(tabs);
+        panel.appendChild(tabContents);
+        panel.appendChild(footer);
+
+        document.body.appendChild(overlay);
+        document.body.appendChild(panel);
+
+        closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            togglePanel(false);
+        });
+
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                togglePanel(false);
+            }
+        });
+
+        tabs.addEventListener('click', (e) => {
+            const tab = e.target.closest('.dt-tab');
+            if (!tab) return;
+
+            document.querySelectorAll('.dt-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            const tabId = `${tab.dataset.tab}-tab`;
+            document.querySelectorAll('.dt-tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+        });
+
+        addBtn.addEventListener('click', () => {
+            const username = input.value.trim();
+            if (username) {
+                const users = getTargetUsernames();
+                if (!users.includes(username)) {
+                    users.push(username);
+                    updateUsernames(users);
+                    loadUsers();
+                    input.value = '';
+                    showNotification(`User "${username}" added to tracking`, 'success');
+                } else {
+                    showNotification(`User "${username}" is already being tracked`, 'warning');
+                }
+            }
+        });
+
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addBtn.click();
+            }
+        });
+
+        importBtn.addEventListener('click', importUsers);
+        exportSimpleBtn.addEventListener('click', exportUsers);
+
+        loadUsers();
+    }
+
+    function togglePanel(show) {
+        if (!panel || !overlay) return;
+
+        if (show) {
+            panel.classList.add('visible');
+            overlay.classList.add('visible');
+            document.body.style.overflow = 'hidden';
+            panel.querySelector('.dt-input')?.focus();
+        } else {
+            panel.classList.remove('visible');
+            overlay.classList.remove('visible');
+            document.body.style.overflow = '';
+        }
+    }
+
+    function getTargetUsernames() {
+        if (cachedUsernames.length === 0) {
+            cachedUsernames = GM_getValue('targetUsernames', []);
+        }
+        return cachedUsernames;
+    }
+
+    function updateUsernames(newList) {
+        GM_setValue('targetUsernames', newList);
+        cachedUsernames = newList;
+    }
+
+    function loadUsers() {
+        if (!panel) return;
+        const list = panel.querySelector('.dt-list');
+        if (!list) return;
+
+        list.innerHTML = '';
+        const users = getTargetUsernames();
+
+        users.forEach(username => {
+            const item = document.createElement('div');
+            item.className = 'dt-list-item';
+
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = username;
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'dt-delete-btn';
+            deleteBtn.textContent = 'Delete';
+
+            deleteBtn.addEventListener('click', () => {
+                const updatedUsers = users.filter(u => u !== username);
+                updateUsernames(updatedUsers);
+                loadUsers();
+                showNotification(`User "${username}" removed`, 'success');
+            });
+
+            item.appendChild(nameSpan);
+            item.appendChild(deleteBtn);
+            list.appendChild(item);
+        });
+    }
+
+    function importUsers() {
+        if (!panel) return;
+        const jsonTextarea = panel.querySelector('.dt-textarea');
+        if (!jsonTextarea) return;
+
+        const inputText = jsonTextarea.value.trim();
+        if (!inputText) return;
+
+        let usernames = [];
+
+        try {
+            if (inputText.startsWith('[')) {
+                const jsonData = JSON.parse(inputText);
+                usernames = jsonData.map(item => {
+                    if (typeof item === 'string') return item;
+                    if (typeof item === 'object' && item.h) return item.h;
+                    return null;
+                }).filter(Boolean);
+            }
+            else if (inputText.includes('"') || inputText.includes(',')) {
+                usernames = inputText.split(',')
+                    .map(name => name.trim().replace(/^["']|["']$/g, ''))
+                    .filter(name => name.length > 0);
+            }
+            else {
+                usernames = inputText.split('\n')
+                    .map(name => name.trim())
+                    .filter(name => name.length > 0);
+            }
+
+            if (usernames.length > 0) {
+                const currentUsers = getTargetUsernames();
+                const newUsers = [...new Set([...currentUsers, ...usernames])];
+                updateUsernames(newUsers);
+                loadUsers();
+                jsonTextarea.value = '';
+
+                showNotification(`Imported ${usernames.length} users successfully`, 'success');
+
+                panel.querySelectorAll('.dt-tab').forEach(t => t.classList.remove('active'));
+                panel.querySelector('.dt-tab[data-tab="manage"]').classList.add('active');
+                panel.querySelectorAll('.dt-tab-content').forEach(c => c.classList.remove('active'));
+                panel.querySelector('#manage-tab').classList.add('active');
+            } else {
+                showNotification('No valid usernames found in input', 'warning');
+            }
+        } catch (e) {
+            showNotification('Error parsing input: ' + e.message, 'error');
+        }
+    }
+
+    function exportUsers() {
+        if (!panel) return;
+        const jsonTextarea = panel.querySelector('.dt-textarea');
+        if (!jsonTextarea) return;
+
+        const users = getTargetUsernames();
+        const quotedUsers = users.map(username => `"${username}"`);
+        jsonTextarea.value = quotedUsers.join(', ');
+
+        GM_setClipboard(quotedUsers.join(', '));
+        showNotification('User list copied to clipboard', 'success');
+
+        const exportSimpleBtn = panel.querySelector('.dt-btn:not(.dt-btn-success)');
+        if (exportSimpleBtn) {
+            exportSimpleBtn.textContent = 'Copied!';
+            setTimeout(() => {
+                exportSimpleBtn.textContent = 'Export as List';
+            }, 2000);
+        }
+    }
 
     function showNotification(message, type = 'info', duration = 5000) {
+        const notificationContainer = document.querySelector('.dt-notification-container') ||
+            (() => {
+                const container = document.createElement('div');
+                container.className = 'dt-notification-container';
+                document.body.appendChild(container);
+                return container;
+            })();
+
         const notification = document.createElement('div');
         notification.className = `dt-notification animate-enter bg-backgroundTertiary border border-secondaryStroke shadow-lg rounded-[8px] sm:rounded-[4px] pointer-events-auto flex items-center p-[16px] h-[52px] gap-[16px]`;
 
@@ -439,117 +746,7 @@
         return notification;
     }
 
-    const overlay = document.createElement('div');
-    overlay.className = 'dt-overlay';
-
-    const panel = document.createElement('div');
-    panel.className = 'dt-panel';
-
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'dt-close-btn';
-    closeBtn.innerHTML = '&times;';
-    closeBtn.title = 'Close';
-
-    const title = document.createElement('h3');
-    title.className = 'dt-title';
-    title.textContent = 'Tracked Users Management';
-
-    const tabs = document.createElement('div');
-    tabs.className = 'dt-tabs';
-
-    const manageTab = document.createElement('div');
-    manageTab.className = 'dt-tab active';
-    manageTab.textContent = 'Manage';
-    manageTab.dataset.tab = 'manage';
-
-    const importExportTab = document.createElement('div');
-    importExportTab.className = 'dt-tab';
-    importExportTab.textContent = 'Import/Export';
-    importExportTab.dataset.tab = 'import-export';
-
-    tabs.appendChild(manageTab);
-    tabs.appendChild(importExportTab);
-
-    const tabContents = document.createElement('div');
-    tabContents.className = 'dt-tab-contents';
-
-    const manageContent = document.createElement('div');
-    manageContent.className = 'dt-tab-content active';
-    manageContent.id = 'manage-tab';
-
-    const inputGroup = document.createElement('div');
-    inputGroup.className = 'dt-input-group';
-
-    const input = document.createElement('input');
-    input.className = 'dt-input';
-    input.type = 'text';
-    input.placeholder = 'Enter username (e.g., elonmusk)';
-
-    const addBtn = document.createElement('button');
-    addBtn.className = 'dt-btn dt-btn-primary';
-    addBtn.textContent = 'Add';
-
-    const list = document.createElement('div');
-    list.className = 'dt-list';
-
-    inputGroup.appendChild(input);
-    inputGroup.appendChild(addBtn);
-
-    manageContent.appendChild(inputGroup);
-    manageContent.appendChild(list);
-
-    const importExportContent = document.createElement('div');
-    importExportContent.className = 'dt-tab-content';
-    importExportContent.id = 'import-export-tab';
-
-    const importExportContainer = document.createElement('div');
-    importExportContainer.className = 'dt-import-export';
-
-    const jsonTextarea = document.createElement('textarea');
-    jsonTextarea.className = 'dt-textarea';
-    jsonTextarea.placeholder = 'Paste JSON array or comma-separated usernames here...';
-
-    const formatHint = document.createElement('div');
-    formatHint.className = 'dt-format-hint';
-    formatHint.textContent = 'Formats accepted: [{"h":"username"},...] or "user1", "user2"';
-
-    const importBtn = document.createElement('button');
-    importBtn.className = 'dt-btn dt-btn-success';
-    importBtn.textContent = 'Import';
-
-    const exportSimpleBtn = document.createElement('button');
-    exportSimpleBtn.className = 'dt-btn';
-    exportSimpleBtn.textContent = 'Export as List';
-
-    const buttonGroup = document.createElement('div');
-    buttonGroup.className = 'dt-input-group';
-    buttonGroup.style.marginTop = '10px';
-
-    buttonGroup.appendChild(importBtn);
-    buttonGroup.appendChild(exportSimpleBtn);
-
-    importExportContainer.appendChild(formatHint);
-    importExportContainer.appendChild(jsonTextarea);
-    importExportContainer.appendChild(buttonGroup);
-    importExportContent.appendChild(importExportContainer);
-
-    tabContents.appendChild(manageContent);
-    tabContents.appendChild(importExportContent);
-
-    const footer = document.createElement('div');
-    footer.className = 'dt-footer';
-    footer.textContent = 'Discord - autorun__';
-
-    panel.appendChild(closeBtn);
-    panel.appendChild(title);
-    panel.appendChild(tabs);
-    panel.appendChild(tabContents);
-    panel.appendChild(footer);
-
-    document.body.appendChild(overlay);
-    document.body.appendChild(panel);
-
-    const createAxiomButton = () => {
+    function createAxiomButton() {
         if (document.querySelector('.dt-axiom-button')) {
             return null;
         }
@@ -573,198 +770,44 @@
 
         buttonContainer.appendChild(button);
         return buttonContainer;
-    };
+    }
 
-    const waitForElement = () => {
+    function waitForElementAndAddButton() {
         const targetSelector = '.flex.flex-row.gap-4.items-center';
-        const buttonClass = 'dt-axiom-button';
+        const maxAttempts = 10;
+        let attempts = 0;
 
-        const checkAndAddButton = () => {
+        const interval = setInterval(() => {
             const target = document.querySelector(targetSelector);
-            if (target && !target.querySelector(`.${buttonClass}`)) {
+            if (target) {
                 const button = createAxiomButton();
                 if (button) {
                     target.insertBefore(button, target.firstChild);
                     console.log("✅ Bouton User-Tracker ajouté");
+                    clearInterval(interval);
                 }
             }
-        };
 
-        checkAndAddButton();
-
-        const observer = new MutationObserver((mutations) => {
-            for (const mutation of mutations) {
-                if (mutation.addedNodes.length > 0) {
-                    checkAndAddButton();
-                }
+            attempts++;
+            if (attempts >= maxAttempts) {
+                clearInterval(interval);
+                console.warn("Target element not found after multiple attempts");
             }
-        });
-
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
-    };
-
-    tabs.addEventListener('click', (e) => {
-        const tab = e.target.closest('.dt-tab');
-        if (!tab) return;
-
-        document.querySelectorAll('.dt-tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-
-        const tabId = `${tab.dataset.tab}-tab`;
-        document.querySelectorAll('.dt-tab-content').forEach(c => c.classList.remove('active'));
-        document.getElementById(tabId).classList.add('active');
-    });
-
-    function togglePanel(show) {
-        if (show) {
-            panel.classList.add('visible');
-            overlay.classList.add('visible');
-            document.body.style.overflow = 'hidden';
-            input.focus();
-        } else {
-            panel.classList.remove('visible');
-            overlay.classList.remove('visible');
-            document.body.style.overflow = '';
-        }
+        }, 500);
     }
 
-    overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) {
-            togglePanel(false);
-        }
-    });
-
-    closeBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        togglePanel(false);
-    });
-
-    function getTargetUsernames() {
-        if (cachedUsernames.length === 0) {
-            cachedUsernames = GM_getValue('targetUsernames', []);
-        }
-        return cachedUsernames;
+    function initialize() {
+        createPanel();
+        waitForElementAndAddButton();
     }
 
-    function updateUsernames(newList) {
-        GM_setValue('targetUsernames', newList);
-        cachedUsernames = newList;
-    }
-
-    function loadUsers() {
-        list.innerHTML = '';
-        const users = getTargetUsernames();
-
-        users.forEach(username => {
-            const item = document.createElement('div');
-            item.className = 'dt-list-item';
-
-            const nameSpan = document.createElement('span');
-            nameSpan.textContent = username;
-
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'dt-delete-btn';
-            deleteBtn.textContent = 'Delete';
-
-            deleteBtn.addEventListener('click', () => {
-                const updatedUsers = users.filter(u => u !== username);
-                updateUsernames(updatedUsers);
-                loadUsers();
-                showNotification(`User "${username}" removed`, 'success');
-            });
-
-            item.appendChild(nameSpan);
-            item.appendChild(deleteBtn);
-            list.appendChild(item);
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        setTimeout(initialize, 1000);
+    } else {
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(initialize, 1000);
         });
     }
-
-    addBtn.addEventListener('click', () => {
-        const username = input.value.trim();
-        if (username) {
-            const users = getTargetUsernames();
-            if (!users.includes(username)) {
-                users.push(username);
-                updateUsernames(users);
-                loadUsers();
-                input.value = '';
-                showNotification(`User "${username}" added to tracking`, 'success');
-            } else {
-                showNotification(`User "${username}" is already being tracked`, 'warning');
-            }
-        }
-    });
-
-    input.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            addBtn.click();
-        }
-    });
-
-    importBtn.addEventListener('click', () => {
-        const inputText = jsonTextarea.value.trim();
-        if (!inputText) return;
-
-        let usernames = [];
-
-        try {
-            if (inputText.startsWith('[')) {
-                const jsonData = JSON.parse(inputText);
-                usernames = jsonData.map(item => {
-                    if (typeof item === 'string') return item;
-                    if (typeof item === 'object' && item.h) return item.h;
-                    return null;
-                }).filter(Boolean);
-            }
-            else if (inputText.includes('"') || inputText.includes(',')) {
-                usernames = inputText.split(',')
-                    .map(name => name.trim().replace(/^["']|["']$/g, ''))
-                    .filter(name => name.length > 0);
-            }
-            else {
-                usernames = inputText.split('\n')
-                    .map(name => name.trim())
-                    .filter(name => name.length > 0);
-            }
-
-            if (usernames.length > 0) {
-                const currentUsers = getTargetUsernames();
-                const newUsers = [...new Set([...currentUsers, ...usernames])];
-                updateUsernames(newUsers);
-                loadUsers();
-                jsonTextarea.value = '';
-
-                showNotification(`Imported ${usernames.length} users successfully`, 'success');
-
-                document.querySelectorAll('.dt-tab').forEach(t => t.classList.remove('active'));
-                manageTab.classList.add('active');
-                document.querySelectorAll('.dt-tab-content').forEach(c => c.classList.remove('active'));
-                manageContent.classList.add('active');
-            } else {
-                showNotification('No valid usernames found in input', 'warning');
-            }
-        } catch (e) {
-            showNotification('Error parsing input: ' + e.message, 'error');
-        }
-    });
-
-    exportSimpleBtn.addEventListener('click', () => {
-        const users = getTargetUsernames();
-        const quotedUsers = users.map(username => `"${username}"`);
-        jsonTextarea.value = quotedUsers.join(', ');
-
-        GM_setClipboard(quotedUsers.join(', '));
-        showNotification('User list copied to clipboard', 'success');
-        exportSimpleBtn.textContent = 'Copied!';
-        setTimeout(() => {
-            exportSimpleBtn.textContent = 'Export as List';
-        }, 2000);
-    });
-
-    loadUsers();
 
     function highlightPlume(username, element) {
         if (element.hasAttribute(MARKER_ATTR)) return;
@@ -829,29 +872,7 @@
         characterData: false
     });
 
-    const panelObserver = new MutationObserver(debouncedCheck);
-    panelObserver.observe(panel, { childList: true, subtree: true });
-
-    document.addEventListener('DOMContentLoaded', () => {
-        setTimeout(() => {
-            checkForTargetLinks();
-            waitForElement();
-        }, 1000);
-    });
-
-    if (document.readyState === 'complete' || document.readyState === 'interactive') {
-        setTimeout(() => {
-            checkForTargetLinks();
-            waitForElement();
-        }, 1000);
-    } else {
-        document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => {
-                checkForTargetLinks();
-                waitForElement();
-            }, 1000);
-        });
-    }
+    setTimeout(checkForTargetLinks, 2000);
 })();
 
 // Discord: autorun__
