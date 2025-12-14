@@ -22,8 +22,16 @@ Click the "+" button to add a new script.
 
 Copy the provided script and paste it into the editor, then click **"Save"**.
 
+## 🌐 Auto Translator - Tweet
 
-## 👤 User-Tracker
+This script allows you to automatically translate Tweets (X posts) on Axiom Trade into the language of your choice.
+
+Translations are fast, reliable, and cached for better performance. ⚡️
+
+![Translate](https://i.imgur.com/DZxKBUL.jpg)  
+![Translate](https://i.imgur.com/XMeTggd.jpg)
+
+## 👤 [Obsolete] User-Tracker
 
 This script allows you to quickly identify tokens containing a link redirecting to specific users you have selected, such as Elon Musk. 🚀
 
@@ -39,7 +47,7 @@ For example, in the video, you can see that the feather appears in red because t
 
 [![Watch the video](https://i.imgur.com/ED1r4iv.png)](https://youtu.be/RqUOhskfUhg?si=JQKAVDfPCYe32-Uz)
 
-## 🕒 Tweet Date Formatter
+## 🕒 [Obsolete] Tweet Date Formatter
 
 This script automatically reformats tweet dates on Axiom Trade for clearer and more intuitive reading! 🔍
 
@@ -48,14 +56,6 @@ This script automatically reformats tweet dates on Axiom Trade for clearer and m
 
 ![Example](https://i.imgur.com/OzdfsYj.png)
 
-## 🌐 Auto Translator - Tweet
-
-This script allows you to automatically translate Tweets (X posts) on Axiom Trade into the language of your choice.
-
-Translations are fast, reliable, and cached for better performance. ⚡️
-
-![Translate](https://i.imgur.com/DZxKBUL.jpg)  
-![Translate](https://i.imgur.com/XMeTggd.jpg)
 
 
 
